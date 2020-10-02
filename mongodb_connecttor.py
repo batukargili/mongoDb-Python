@@ -1,16 +1,24 @@
+import configparser
 import json
 
 from kafka import KafkaConsumer
 from pymongo import MongoClient
 
-MONGO_HOST = "127.0.0.1"
-MONGO_PORT = 27017
 
-consumer = KafkaConsumer("SmartBankSpark3Kafka",bootstrap_servers=['localhost:9092'],auto_offset_reset='earliest',
-     enable_auto_commit=True)
+config = configparser.ConfigParser()
+config.read("Config/config.ini")
+bootstrap_servers = config.get("Kafka", "Bootstrap_Servers")
+mongo_port = config.get("Mongo", "Mongo_Port")
+mongo_host = config.get("Mongo", "Mongo_Host")
+mongo_db = config.get("Mongo", "Mongo_Db")
 
-client = MongoClient('localhost', 27017)
-db = client["smartbank"]
+
+kafka_topic = "TopicTest"
+consumer = KafkaConsumer("TopicTest", bootstrap_servers=bootstrap_servers, auto_offset_reset='earliest',
+                         enable_auto_commit=True)
+
+client = MongoClient(mongo_host, mongo_port)
+db = client[mongo_db]
 col = db["smartbank_da"]
 
 for val in consumer:
@@ -20,12 +28,4 @@ for val in consumer:
     print(type(msg))
     col.insert_one(msg)
 
-
 client.close()
-
-
-
-
-
-
-
